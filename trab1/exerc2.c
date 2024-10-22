@@ -32,95 +32,152 @@ struct esparsa
 };
 typedef struct esparsa Esparsa;
 
-int main()
-{
-
-}
-
-Lista* append_left(Lista* lista, int elemento, int linha, int coluna)
+void append_left(Lista* lista, int elemento, int linha, int coluna)
 {
     Lista* novo_no = malloc(sizeof(Lista));
     novo_no->linha = linha;
     novo_no->coluna = coluna;
     novo_no->info = elemento;
     novo_no->prox = lista;
-    return novo_no;
+    lista = novo_no;
 }
 
-void preenche_lista(Lista* lista)
+bool verifica_se_posicao_preenchida(Lista* lista, int linha, int coluna)
 {
-    int elemento = -1, linha = -1, coluna = -1, resposta = -1;
-
+    if(lista == NULL) return false;
+    Lista* no_atual = lista;
+    
     while(true)
     {
-        printf("Você deseja adicionar um elemento à lista de elementos não-nulos?\n");
-        printf("Sim - 1\n");
-        printf("Não - 0\n");
-        printf("Resposta: ");
-        scanf("%d", &resposta);
+        Lista* proximo_no = no_atual->prox;
+
+        if(no_atual->linha == linha && no_atual->coluna == coluna) return true;
+        if(proximo_no == NULL) break;
+
+        no_atual = proximo_no;
+    }
+
+    return false;
+}
+
+void preenche_lista(Lista* lista, int tamanho_maximo)
+{
+    int elemento = -1, linha = -1, coluna = -1, resposta = -1;
+    bool posicao_preenchida = false;
+
+    for(int i = 0; i < tamanho_maximo; i++)
+    {
+        while(true)
+        {
+            printf("Você deseja adicionar um elemento à lista de elementos não-nulos?\n");
+            printf("Sim - 1\n");
+            printf("Não - 0\n");
+            printf("Resposta: ");
+            scanf("%d", &resposta);
+
+            if(resposta != 1 && resposta != 0) continue;
+            else if(resposta == 0) break;
+
+            printf("Insira o elemento a adicionar: ");
+            scanf("%d", &elemento);
+            printf("Insira a linha do elemento: ");
+            scanf("%d", &linha);
+            printf("Insira a coluna do elemento: ");
+            scanf("%d", &coluna);
+
+            posicao_preenchida = verifica_se_posicao_preenchida(lista, linha, coluna);
+
+            if(!posicao_preenchida) append_left(lista, elemento, linha, coluna);
+            else printf("Essa posição já está preenchida!\n");
+        }
 
         if(resposta == 0) break;
-        else if(resposta != 1) continue;
-
-        printf("Insira o elemento a adicionar: ");
-        scanf("%d", &elemento);
-        printf("Insira a linha do elemento: ");
-        scanf("%d", &linha);
-        printf("Insira a coluna do elemento: ");
-        printf("%d", &coluna);
-
-        lista = append_left(lista, elemento, linha, coluna);
     }
 }
 
-void aloca_matriz(int** matriz, Esparsa* matriz_info)
+int retorna_elemento_da_lista(Lista* lista, int linha, int coluna)
 {
-    matriz = malloc(matriz_info->linhas * sizeof(int*));
-    for(int i = 0; i < matriz_info->linhas; i++) matriz[i] = malloc(matriz_info->colunas * sizeof(int));
-}
-
-Lista busca_no_da_lista(Lista* lista, int posicao)
-{
+    if(lista == NULL) return 111;
     Lista* no_atual = lista;
-    Lista* proximo_no = NULL;
-    int elemento_buscado = 0;
     
-    for(int i = 0; i < posicao; i++)
+    while(true)
     {
-        elemento_buscado = no_atual->info;
-        proximo_no = no_atual->prox;
+        Lista* proximo_no = no_atual->prox;
+
+        if(no_atual->linha == linha && no_atual->coluna == coluna) return no_atual->info;
+        if(proximo_no == NULL) break;
+
         no_atual = proximo_no;
     }
 
-    return no_atual;
+    return 0;
 }
 
-int tamanho_da_lista(Lista* lista)
+void imprime_matriz(Esparsa* matriz, Lista* lista)
 {
-    if(lista == NULL) return 0;
+    int elemento = 0;
+
+    printf("\n       ");
+
+    //Imprime o índice das colunas
+    for(int i = 0; i < matriz->colunas; i++)
+    {
+        if(i < 9) printf("|  00%d  ", i + 1);
+        else if(i < 99) printf("|  0%d  ", i + 1);
+        else printf("|  %d  ", i + 1);
+    }
+
+    printf("|\n");
+
+    for(int i = 0; i < matriz->linhas; i++)
+    {
+        for(int k = 0; k < 8 * matriz->colunas + 8; k++) printf("-"); //Divide as linhas
+
+        //Imprime o índice das linhas
+        if(i < 9) printf("\n  00%d  ", i + 1); 
+        else if(i < 99) printf("\n  0%d  ", i + 1);
+        else printf("\n  %d  ", i + 1);
+
+        
+        for(int j = 0; j < matriz->colunas; j++) 
+        {
+            elemento = retorna_elemento_da_lista(lista, i, j);
+
+            if(elemento < 10) printf("|  00%d  ", elemento);
+            else if(elemento < 100) printf("|  0%d  ", elemento);
+            else printf("|  %d  ", elemento);
+        }
+        printf("|\n");
+    }
+
+    printf("\n");
+}
+
+Lista* aloca_lista()
+{
+    Lista* lista = NULL;
+    return lista;
+}
+
+void desaloca_lista(Lista* lista)
+{
     Lista* no_atual = lista;
     Lista* proximo_no = no_atual->prox;
-    int contador = 1;
     
-    while(proximo_no != NULL)
+    while(no_atual != NULL)
     {
-        contador++;
+        free(no_atual);
         no_atual = proximo_no;
         proximo_no = no_atual->prox;
     }
-
-    return contador;
 }
 
-void preenche_matriz(int** matriz, Esparsa* matriz_info)
+int main()
 {
-    int tamanho = tamanho_da_lista(matriz_info->prim);
-    Lista no_da_lista;
-
-    for(int i = 0; i < tamanho; i++)
-    {
-        no_da_lista = busca_no_da_lista(lista, i + 1);
-        matriz[no_da_lista.linha][no_da_lista.coluna] = no_da_lista.info
-    }
+    Esparsa matriz = {2, 3, aloca_lista()};
+    Esparsa* ponteiro_pra_matriz = &matriz;
+    Lista* ponteiro_pra_lista = matriz.prim;
+    preenche_lista(ponteiro_pra_lista, matriz.linhas * matriz.colunas);
+    imprime_matriz(ponteiro_pra_matriz, matriz.prim);
+    desaloca_lista(ponteiro_pra_lista);
 }
-
